@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from schemas import Note
-from database import engine, Base
+from database import engine, Base, SessionLocal
 from models import NoteDB
 
 Base.metadata.create_all(bind=engine)
 
+db = SessionLocal()
 app = FastAPI()
 
 notes = []
@@ -15,15 +16,23 @@ def home():
 
 @app.post("/notes/")
 def create_note(note: Note):
-    notes.append(note)
+    db_note = NoteDB(
+    title=note.title,
+    content=note.content
+    )
+
+    db.add(db_note)
+    db.commit()
+    db.refresh(db_note)
     return {
         "message": "Note created successfully",
-        "note": note
+        "note": db_note
     }
 
 @app.get("/notes/")
 def get_notes():
-    return {"notes": notes}
+    note = db.query(NoteDB).all()
+    return {"notes": note}
 
 @app.get("/notes/{note_id}")
 def get_note(note_id: int):
