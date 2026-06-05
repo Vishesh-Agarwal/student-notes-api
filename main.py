@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from schemas import Note
 from database import engine, Base
-from models import NoteDB
+from models import NoteDB, UserDB
 from sqlalchemy.orm import Session
 from dependencies import get_db
 
