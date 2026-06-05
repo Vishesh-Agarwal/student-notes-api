@@ -1,9 +1,11 @@
 from fastapi import FastAPI
+from schemas import Note
+from database import engine, Base
+from models import NoteDB
 
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-
 
 notes = []
 
