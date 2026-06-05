@@ -1,21 +1,19 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
 from schemas import Note
-from database import engine, Base, SessionLocal
+from database import engine, Base
 from models import NoteDB
+from sqlalchemy.orm import Session
+from dependencies import get_db
 
 Base.metadata.create_all(bind=engine)
-
-db = SessionLocal()
 app = FastAPI()
-
-notes = []
 
 @app.get("/")
 def home():
     return {"message": "Student Notes API"}
 
 @app.post("/notes/")
-def create_note(note: Note):
+def create_note(note: Note, db: Session = Depends(get_db)):
     db_note = NoteDB(
     title=note.title,
     content=note.content
@@ -30,32 +28,38 @@ def create_note(note: Note):
     }
 
 @app.get("/notes/")
-def get_notes():
+def get_notes(db: Session = Depends(get_db)):
     note = db.query(NoteDB).all()
     return {"notes": note}
 
 @app.get("/notes/{note_id}")
-def get_note(note_id: int):
-    for note in notes:
-        if note.id == note_id:
-            return {"note": note}
-    return {"message": "Note not found"}
+def get_note(note_id: int, db: Session = Depends(get_db)):
+    note = db.query(NoteDB).filter(NoteDB.id == note_id).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    return {"note": note}
 
 @app.put("/notes/{note_id}")
-def update_note(note_id: int, updated_note: Note):
-    for index, note in enumerate(notes):
-        if note.id == note_id:
-            notes[index] = updated_note
-            return {
-                "message": "Note updated successfully",
-                "note": updated_note
+def update_note(note_id: int, updated_note: Note, db: Session = Depends(get_db)):
+    note = db.query(NoteDB).filter(NoteDB.id == note_id).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    note.title = updated_note.title
+    note.content = updated_note.content
+    db.commit()
+    db.refresh(note)
+    return {
+        "message": "Note updated successfully",
+                "note": note
             }
-    return {"message": "Note not found"}
 
 @app.delete("/notes/{note_id}")
-def delete_note(note_id: int):
-    for index, note in enumerate(notes):
-        if note.id == note_id:
-            del notes[index]
-            return {"message": "Note deleted successfully"}
-    return {"message": "Note not found"}
+def delete_note(note_id: int, db: Session = Depends(get_db)):
+    note = db.query(NoteDB).filter(NoteDB.id == note_id).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    db.delete(note)
+    db.commit()
+    return {"message": "Note deleted successfully"}
