@@ -1,12 +1,9 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+
 
 app = FastAPI()
 
-class Note(BaseModel):
-    id: int
-    title: str
-    content: str
+
 
 notes = []
 
