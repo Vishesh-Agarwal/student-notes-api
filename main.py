@@ -31,7 +31,8 @@ def create_user(
 def create_note(note: Note, db: Session = Depends(get_db)):
     db_note = NoteDB(
     title=note.title,
-    content=note.content
+    content=note.content,
+    user_id=note.user_id
     )
 
     db.add(db_note)
@@ -78,3 +79,16 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
     db.delete(note)
     db.commit()
     return {"message": "Note deleted successfully"}
+
+@app.get("/users/{user_id}/notes")
+def get_user_notes(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    notes = (
+        db.query(NoteDB)
+        .filter(NoteDB.user_id == user_id)
+        .all()
+    )
+
+    return notes
