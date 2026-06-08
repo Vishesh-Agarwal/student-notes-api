@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
-from schemas import Note
+from schemas import Note, User
 from database import engine, Base
 from models import NoteDB, UserDB
 from sqlalchemy.orm import Session
@@ -11,6 +11,21 @@ app = FastAPI()
 @app.get("/")
 def home():
     return {"message": "Student Notes API"}
+
+@app.post("/users/")
+def create_user(
+    user: User,
+    db: Session = Depends(get_db)
+):
+    db_user = UserDB(
+        username=user.username
+    )
+
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+
+    return db_user
 
 @app.post("/notes/")
 def create_note(note: Note, db: Session = Depends(get_db)):
