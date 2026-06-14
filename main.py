@@ -5,7 +5,6 @@ from models import NoteDB, UserDB
 from sqlalchemy.orm import Session
 from dependencies import get_db
 
-Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 @app.get("/")
