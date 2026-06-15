@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
-from schemas import Note, User
+from schemas import Note, User, UserCreate, UserLogin
 from database import engine, Base
 from models import NoteDB, UserDB
 from sqlalchemy.orm import Session
 from dependencies import get_db
+from security import hash_password
 
 app = FastAPI()
 
@@ -13,11 +14,13 @@ def home():
 
 @app.post("/users/")
 def create_user(
-    user: User,
+    user: UserCreate,
     db: Session = Depends(get_db)
 ):
     db_user = UserDB(
-        username=user.username
+        username=user.username,
+        email=user.email,
+        hashed_password=hash_password(user.password)
     )
 
     db.add(db_user)
