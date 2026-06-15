@@ -19,3 +19,4 @@ class UserDB(Base):
     username = Column(String, unique=True)
     notes = relationship("NoteDB", back_populates="owner")
     email = Column(String, unique=True)
+    created_at = Column(String)
