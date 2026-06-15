@@ -4,7 +4,8 @@ from database import engine, Base
 from models import NoteDB, UserDB
 from sqlalchemy.orm import Session
 from dependencies import get_db
-from security import hash_password
+from security import hash_password, verify_password, create_access_token
+
 
 app = FastAPI()
 
@@ -28,6 +29,24 @@ def create_user(
     db.refresh(db_user)
 
     return db_user
+
+@app.post("/users/login")
+def login_user(
+    user: UserLogin,
+    db: Session = Depends(get_db)
+):
+    db_user = (
+        db.query(UserDB)
+        .filter(UserDB.username == user.username)
+        .first()
+    )
+
+    if not db_user or not verify_password(user.password, db_user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    access_token = create_access_token(data={"sub": db_user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
 
 @app.post("/notes/")
 def create_note(note: Note, db: Session = Depends(get_db)):
