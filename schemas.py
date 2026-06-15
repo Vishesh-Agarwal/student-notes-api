@@ -7,3 +7,12 @@ class Note(BaseModel):
 
 class User(BaseModel):
     username: str = Field(min_length=3, max_length=20)
+
+class UserCreate(BaseModel):
+    username: str = Field(min_length=3, max_length=20)  
+    email: str 
+    password: str 
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
