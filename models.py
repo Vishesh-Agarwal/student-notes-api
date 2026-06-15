@@ -20,3 +20,4 @@ class UserDB(Base):
     notes = relationship("NoteDB", back_populates="owner")
     email = Column(String, unique=True)
     created_at = Column(String)
+    hashed_password = Column(String)
